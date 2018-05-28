@@ -671,6 +671,18 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
         1.indent + "}" + eol
     }
 
+    val streamMethod = {
+      if (config.streams) {
+        s"""
+          |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
+          |    sql"select.from(${className} as ${syntaxName}).where.append(where)".iterator()
+          |  }
+        """.stripMargin + eol
+      } else {
+        ""
+      }
+    }
+
     val nameConverters: String = {
       def quote(str: String) = "\"" + str + "\""
       val customNameColumns = table.allColumns.collect {
@@ -725,6 +737,8 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       saveMethod +
       eol +
       destroyMethod +
+      eol +
+      streamMethod +
       eol +
       "}"
   }

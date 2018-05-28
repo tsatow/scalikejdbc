@@ -22,7 +22,8 @@ case class GeneratorConfig(
   tableNameToBaseTypes: String => Seq[String] = _ => Nil,
   tableNameToCompanionBaseTypes: String => Seq[String] = _ => Nil,
   tableNameToSyntaxName: String => String = GeneratorConfig.tableNameToSyntaxNameDefault,
-  tableNameToSyntaxVariableName: String => String = GeneratorConfig.tableNameToSyntaxNameDefault)
+  tableNameToSyntaxVariableName: String => String = GeneratorConfig.tableNameToSyntaxNameDefault,
+  streams: Boolean = false)
 
 object GeneratorConfig {
   private def toProperCase(s: String): String = {
