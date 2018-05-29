@@ -163,7 +163,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       companionBaseTypes = commaSeparated(props, COMPANION_BASE_TYPES),
       tableNameToSyntaxName = defaultConfig.tableNameToSyntaxName,
       tableNameToSyntaxVariableName = defaultConfig.tableNameToSyntaxVariableName,
-      streams = getString(props, DEFAULT_AUTO_SESSION).map(_.toBoolean).getOrElse(defaultConfig.streams))
+      streams = getString(props, DEFAULT_AUTO_SESSION).map(_.toBoolean).getOrElse(defaultConfig.streams)
+    )
   }
 
   private[this] def loadPropertiesFromFile(): Either[FileNotFoundException, Properties] = {
