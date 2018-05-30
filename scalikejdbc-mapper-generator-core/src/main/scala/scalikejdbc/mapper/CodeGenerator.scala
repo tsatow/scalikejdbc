@@ -671,7 +671,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
         1.indent + "}" + eol
     }
 
-    val streamMethod = {
+    val streamByMethod = {
       config.template match {
         case GeneratorTemplate.interpolation =>
           s"""
@@ -746,7 +746,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       eol +
       destroyMethod +
       eol +
-      (if (config.streams) streamMethod else "") +
+      (if (config.streams) streamByMethod else "") +
       eol +
       "}"
   }
@@ -894,6 +894,10 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
           |    entities.foreach(e => %className%.destroy(e))
           |    val batchInserted = %className%.batchInsert(entities)
           |    batchInserted.size should be >(0)
+          |  }
+          |  it should "stream by where clauses" in { implicit session =>
+          |    val maybeFound = %className%.streamBy(%whereExample%)
+          |    maybeFound.isDefined should be(true)
           |  }
           |}""".stripMargin + eol))
     case GeneratorTestTemplate.specs2unit =>
