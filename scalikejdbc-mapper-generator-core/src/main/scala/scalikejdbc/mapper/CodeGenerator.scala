@@ -672,14 +672,22 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
     }
 
     val streamMethod = {
-      if (config.streams) {
-        s"""
-          |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
-          |    sql"select.from(${className} as ${syntaxName}).where.append(where)".iterator()
-          |  }
-        """.stripMargin + eol
-      } else {
-        ""
+      config.template match {
+        case GeneratorTemplate.interpolation =>
+          s"""
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
+            |    sql\"\"\"select $${${syntaxName}.result.*} from $${${className} as ${syntaxName}}\"\"\".
+            |      map(${className}(${syntaxName}.resultName)).list.apply().iterator()
+            |  }
+          """.stripMargin + eol
+        case GeneratorTemplate.queryDsl =>
+          s"""
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
+            |    withSQL {
+            |      select.from(${className} as ${syntaxName}).where.append(where)
+            |    }.map(${className}(${syntaxName}.resultName)).list.iterator()
+            |  }
+          """.stripMargin + eol
       }
     }
 
@@ -738,7 +746,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       eol +
       destroyMethod +
       eol +
-      streamMethod +
+      (if (config.streams) streamMethod else "") +
       eol +
       "}"
   }
@@ -786,6 +794,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       eol +
       compatImport +
       "import scalikejdbc._" + eol +
+      (if (config.streams) "import scalikejdbc.streams._" + eol else "") +
       timeImport +
       javaSqlImport +
       eol +
