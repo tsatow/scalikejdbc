@@ -895,10 +895,6 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
           |    val batchInserted = %className%.batchInsert(entities)
           |    batchInserted.size should be >(0)
           |  }
-          |  it should "stream by where clauses" in { implicit session =>
-          |    val maybeFound = %className%.streamBy(%whereExample%)
-          |    maybeFound.isDefined should be(true)
-          |  }
           |}""".stripMargin + eol))
     case GeneratorTestTemplate.specs2unit =>
       Some(replaceVariablesForTestPart(
