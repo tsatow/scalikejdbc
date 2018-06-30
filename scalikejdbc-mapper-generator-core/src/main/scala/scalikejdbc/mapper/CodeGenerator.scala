@@ -675,17 +675,17 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       config.template match {
         case GeneratorTemplate.interpolation =>
           s"""
-            |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[$className] = {
             |    sql\"\"\"select $${${syntaxName}.result.*} from $${${className} as ${syntaxName}}\"\"\".
-            |      map(${className}(${syntaxName}.resultName)).list.apply().iterator()
+            |      map(${className}(${syntaxName}.resultName)).iterator
             |  }
           """.stripMargin + eol
         case GeneratorTemplate.queryDsl =>
           s"""
-            |  def streamBy(where: SQLSyntax): StreamReadySQL[Entity] = {
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[$className] = {
             |    withSQL {
             |      select.from(${className} as ${syntaxName}).where.append(where)
-            |    }.map(${className}(${syntaxName}.resultName)).list.iterator()
+            |    }.map(${className}(${syntaxName}.resultName)).iterator
             |  }
           """.stripMargin + eol
       }
@@ -894,6 +894,10 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
           |    entities.foreach(e => %className%.destroy(e))
           |    val batchInserted = %className%.batchInsert(entities)
           |    batchInserted.size should be >(0)
+          |  }
+          |  it should "stream by where clauses" in { implicit session =>
+          |    val maybeFound = %className%.streamBy(%whereExample%)
+          |    maybeFound.isDefined should be(true)
           |  }
           |}""".stripMargin + eol))
     case GeneratorTestTemplate.specs2unit =>
