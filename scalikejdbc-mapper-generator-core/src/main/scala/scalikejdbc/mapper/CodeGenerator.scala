@@ -671,6 +671,26 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
         1.indent + "}" + eol
     }
 
+    val streamByMethod = {
+      config.template match {
+        case GeneratorTemplate.interpolation =>
+          s"""
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[$className] = {
+            |    sql\"\"\"select $${${syntaxName}.result.*} from $${${className} as ${syntaxName}}\"\"\".
+            |      map(${className}(${syntaxName}.resultName)).iterator
+            |  }
+          """.stripMargin + eol
+        case GeneratorTemplate.queryDsl =>
+          s"""
+            |  def streamBy(where: SQLSyntax): StreamReadySQL[$className] = {
+            |    withSQL {
+            |      select.from(${className} as ${syntaxName}).where.append(where)
+            |    }.map(${className}(${syntaxName}.resultName)).iterator
+            |  }
+          """.stripMargin + eol
+      }
+    }
+
     val nameConverters: String = {
       def quote(str: String) = "\"" + str + "\""
       val customNameColumns = table.allColumns.collect {
@@ -726,6 +746,8 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       eol +
       destroyMethod +
       eol +
+      (if (config.streams) streamByMethod else "") +
+      eol +
       "}"
   }
 
@@ -772,6 +794,7 @@ class CodeGenerator(table: Table, specifiedClassName: Option[String] = None)(imp
       eol +
       compatImport +
       "import scalikejdbc._" + eol +
+      (if (config.streams) "import scalikejdbc.streams._" + eol else "") +
       timeImport +
       javaSqlImport +
       eol +

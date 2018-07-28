@@ -60,7 +60,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       baseTypes: collection.Seq[String],
       companionBaseTypes: collection.Seq[String],
       tableNameToSyntaxName: String => String,
-      tableNameToSyntaxVariableName: String => String)
+      tableNameToSyntaxVariableName: String => String,
+      streams: Boolean)
 
     @deprecated("will be removed. add `enablePlugins(ScalikejdbcPlugin)` in your build.sbt", "")
     lazy val scalikejdbcSettings: collection.Seq[Def.Setting[_]] = projectSettings
@@ -100,13 +101,14 @@ object ScalikejdbcPlugin extends AutoPlugin {
   private[this] final val TABLE_NAMES_TO_SKIP = GENERATOR + "tableNamesToSkip"
   private[this] final val BASE_TYPES = GENERATOR + "baseTypes"
   private[this] final val COMPANION_BASE_TYPES = GENERATOR + "companionBaseTypes"
+  private[this] final val STREAMS = GENERATOR + "streams"
 
   private[this] val jdbcKeys = Set(
     JDBC_DRIVER, JDBC_URL, JDBC_USER_NAME, JDBC_PASSWORD, JDBC_SCHEMA)
   private[this] val generatorKeys = Set(
     PACKAGE_NAME, TEMPLATE, TEST_TEMPLATE, LINE_BREAK,
     ENCODING, AUTO_CONSTRUCT, DEFAULT_AUTO_SESSION, DATETIME_CLASS, RETURN_COLLECTION_TYPE,
-    VIEW, TABLE_NAMES_TO_SKIP, BASE_TYPES, COMPANION_BASE_TYPES)
+    VIEW, TABLE_NAMES_TO_SKIP, BASE_TYPES, COMPANION_BASE_TYPES, STREAMS)
   private[this] val allKeys = jdbcKeys ++ generatorKeys
 
   private[this] def printWarningIfTypo(props: Properties): Unit = {
@@ -160,7 +162,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       baseTypes = commaSeparated(props, BASE_TYPES),
       companionBaseTypes = commaSeparated(props, COMPANION_BASE_TYPES),
       tableNameToSyntaxName = defaultConfig.tableNameToSyntaxName,
-      tableNameToSyntaxVariableName = defaultConfig.tableNameToSyntaxVariableName)
+      tableNameToSyntaxVariableName = defaultConfig.tableNameToSyntaxVariableName,
+      streams = getString(props, DEFAULT_AUTO_SESSION).map(_.toBoolean).getOrElse(defaultConfig.streams))
   }
 
   private[this] def loadPropertiesFromFile(): Either[FileNotFoundException, Properties] = {
@@ -208,7 +211,8 @@ object ScalikejdbcPlugin extends AutoPlugin {
       tableNameToBaseTypes = _ => generatorSettings.baseTypes,
       tableNameToCompanionBaseTypes = _ => generatorSettings.companionBaseTypes,
       tableNameToSyntaxName = generatorSettings.tableNameToSyntaxName,
-      tableNameToSyntaxVariableName = generatorSettings.tableNameToSyntaxVariableName)
+      tableNameToSyntaxVariableName = generatorSettings.tableNameToSyntaxVariableName,
+      streams = generatorSettings.streams)
 
   private def generator(tableName: String, className: Option[String], srcDir: File, testDir: File, jdbc: JDBCSettings, generatorSettings: GeneratorSettings): Option[CodeGenerator] = {
     val config = generatorConfig(srcDir, testDir, generatorSettings)

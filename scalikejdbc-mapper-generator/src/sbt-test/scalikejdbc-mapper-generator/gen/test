@@ -120,7 +120,6 @@ $ delete src/test/scala/ProgrammersTest.scala
 > generateCodeForIssue339
 > compile
 
-
 > set (scalikejdbcGeneratorSettings in Compile) ~= {c => c.copy(tableNameToClassName = c.tableNameToClassName.compose(_ * 2), template ="interpolation")}
 > scalikejdbcGenAll
 $ exists src/main/scala/app/models/Programmersprogrammers.scala
@@ -134,3 +133,16 @@ $ delete src/test/scala/app/models/ProgrammersprogrammersSpec.scala
 > scalikejdbcGen programmers
 $ exists src/main/scala/app/models/Programmersprogrammers.scala
 $ exists src/test/scala/app/models/ProgrammersprogrammersSpec.scala
+
+> set (scalikejdbcGeneratorSettings in Compile) ~= {_.copy(streams = true, template = "interpolation")}
+> scalikejdbcGenEcho programmers
+> scalikejdbcGenForce programmers
+> + test:compile
+> + testOnly app.models.ProgrammersTest
+
+> set (scalikejdbcGeneratorSettings in Compile) ~= {_.copy(streams = true, template = "queryDsl")}
+> scalikejdbcGenEcho programmers
+> scalikejdbcGenForce programmers
+> + test:compile
+> + testOnly app.models.ProgrammersTest
+
